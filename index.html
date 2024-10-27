@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odtwarzacz muzyki</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="player">
+        <div class="now-playing">
+            <h2 id="track-title">No track selected</h2>
+            <div id="time-display">0:00 / 0:00</div>
+        </div>
+
+        <div class="player-controls-container">
+            <div class="select-music-container">
+                📂
+            </div>
+
+            <div class="controls">
+                <button>⏮</button>
+                <button>⏵</button>
+                <button>⏭</button>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" min="0" max="100" value="0">
+                <input type="range" min="0" max="1" step="0.01" value="1">
+            </div>
+        </div>
+
+        <div class="playlist-container">
+            <div class="playlist-header">
+                Playlist
+            </div>
+            <div id="playlist" class="playlist-content">
+                <!-- Tu będą dynamicznie dodawane utwory -->
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

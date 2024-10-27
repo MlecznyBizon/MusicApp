@@ -1,0 +1,16 @@
+{
+  "name": "light-grocery-appear-9uyho",
+  "productName": "light-grocery-appear-9uyho",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "antonityc",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "33.0.2"
+  }
+}
