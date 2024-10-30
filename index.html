@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Odtwarzacz muzyki</title>
+   <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+   <div class="player">
+       <div class="now-playing">
+           <h2 id="track-title">No track selected</h2>
+           <div id="time-display">0:00 / 0:00</div>
+       </div>
+
+       <div class="player-controls-container">
+           <div class="select-music-container">
+               DRAG OR ATTACH FILE
+           </div>
+
+           <div class="controls-volume-container">
+               <div class="controls">
+                   <button>⏮</button>
+                   <button>⏵</button>
+                   <button>⏭</button>
+               </div>
+               <div class="separator"></div>
+
+               <div class="volume-controls">
+                   <button class="volume-button">MIN</button>
+                   <input type="range" class="volume-slider" min="0" max="1" step="0.01" value="1">
+                   <button class="volume-button">MAX</button>
+               </div>
+           </div>
+
+           <input type="range" class="progress-slider" min="0" max="100" value="0">
+       </div>
+
+       <div class="playlist-container">
+           <div class="playlist-header">
+               <div class="playlist-header-content">
+                   <span>PLAYLIST</span>
+                   <button class="clear-playlist">CLEAR</button>
+               </div>
+           </div>
+           <div id="playlist" class="playlist-content"></div>
+       </div>
+   </div>
+   <script src="renderer.js"></script>
+</body>
+</html>
