@@ -12,9 +12,34 @@
            <h2 id="track-title">NO TRACK SELECTED</h2>
            <div id="time-display">0:00 / 0:00</div>
            <input type="range" class="progress-slider" min="0" max="100" value="0">
+           
            <div class="controls-additional">
                <button class="shuffle-button">[SHUFFLE]</button>
+               <div class="separator-small"></div>
                <button class="loop-button">[LOOP]</button>
+               <div class="separator-small"></div>
+               <button class="toggle-button">[VISUALIZER]</button>
+           </div>
+
+           <!-- Stereometer section -->
+           <div class="stereometer-section hidden">
+               <div class="stereometer-canvas-container">
+                   <!-- Canvas here -->
+               </div>
+               <div class="stereo-controls">
+                   <div class="stereo-mode">
+                       Mode: 
+                       <button data-mode="logarithmic" class="active">Logarithmic</button>
+                       <button data-mode="linear">Linear</button>
+                       <button data-mode="lissajous">Lissajous</button>
+                   </div>
+                   <div class="color-mode">
+                       Color Mode:
+                       <button data-color="static" class="active">Static</button>
+                       <button data-color="rgb">RGB</button>
+                       <button data-color="multi-band">Multi-Band</button>
+                   </div>
+               </div>
            </div>
            
            <div class="controls-volume-container">

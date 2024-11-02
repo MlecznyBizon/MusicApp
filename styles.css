@@ -16,21 +16,75 @@ body {
     background: rgb(34, 24, 22);
 }
 
+.upper-container {
+    background: rgb(40, 27, 25);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#spectrogram {
+    width: 100%;
+    height: 150px;
+    margin: 20px 0;
+    border-radius: 4px;
+    background: rgb(34, 24, 22);
+}
+
+.controls-additional {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 10px 0;
+}
+
+.separator-small {
+    width: 2px;
+    height: 12px;
+    background-color: rgb(48, 34, 31);
+    margin: 0 10px;
+    border-radius: 2px;
+}
+
+.shuffle-button,
+.loop-button,
+.toggle-button {
+    min-width: auto;
+    min-height: auto;
+    padding: 0;
+    font-size: 12px;
+    opacity: 0.5;
+    line-height: 1;
+    margin-top: 1px;
+    height: 12px;
+}
+
+.shuffle-button:hover,
+.loop-button:hover,
+.toggle-button:hover {
+    color: rgb(182, 185, 149);
+    background: rgba(70, 75, 34, 0.386);
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.shuffle-button.active,
+.loop-button.active,
+.toggle-button.active {
+    opacity: 1;
+    background: rgb(73, 83, 29);
+    color: rgb(182, 185, 149);
+}
+
 .controls-volume-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
     padding: 0;
-    margin-bottom: 30px;
-}
-
-.now-playing {
-    text-align: center;
-    margin-bottom: 20px;
-    padding: 20px;
-    background: rgb(40, 27, 25);
-    border-radius: 8px;
+    margin-top: 30px;
 }
 
 .controls {
@@ -199,53 +253,6 @@ input[type="range"]::-webkit-slider-thumb {
     background: rgb(73, 83, 29);
 }
 
-.player-controls-container {
-    background: rgb(40, 27, 25);
-    padding: 25px;
-    border-radius: 8px;
-    margin: 20px 0 10px;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    z-index: 1;
-}
-
-.player-controls-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, box-shadow 0.3s ease;
-    opacity: 0;
-    box-shadow: inset 0 0 50px rgba(73, 83, 29, 0);
-    border-radius: 8px;
-    will-change: opacity, box-shadow;
-    transform: translateZ(0);
-    z-index: 0;
-}
-
-.playlist-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease, box-shadow 0.3s ease;
-    opacity: 0;
-    box-shadow: inset 0 0 50px rgba(73, 83, 29, 0);
-    border-radius: 8px;
-    will-change: opacity, box-shadow;
-    transform: translateZ(0);
-    z-index: 0;
-}
-
 .drag-over::before {
     opacity: 1;
     box-shadow: inset 0 0 60px rgba(70, 75, 34, 0.702);
@@ -355,58 +362,113 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 2px;
 }
 
-.progress-container {
-    width: 100%;
+.playlist-container {
+    /* istniejące style pozostają bez zmian */
+    position: relative;
 }
 
-.progress-shuffle-container {
+.playlist-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    box-shadow: inset 0 0 50px rgba(73, 83, 29, 0);
+    border-radius: 8px;
+    will-change: opacity, box-shadow;
+    transform: translateZ(0);
+    z-index: 0;
+}
+
+.drag-over::before {
+    opacity: 1;
+    box-shadow: inset 0 0 60px rgba(70, 75, 34, 0.702);
+}
+
+/* Stereometer styles */
+.stereometer-container {
+    background: rgb(40, 27, 25);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.stereometer-container canvas {
+    width: 100%;
+    height: 200px;
+    background: black;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.stereo-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-family: monospace;
+    font-size: 14px;
+    color: rgb(182, 185, 149);
+}
+
+.stereo-mode,
+.color-mode {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.controls-additional {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    line-height: 1;
-    align-items: center;
-}
-
-.shuffle-button,
-.loop-button {
-    min-width: auto;
-    min-height: auto;
-    padding: 0;
-    font-size: 12px;
-    opacity: 0.5;
-    line-height: 1;
-    margin-top: 1px;
-    height: 12px;
-    width: 150px;
-    transition: opacity 0.15s ease, background-color 0.15s ease;
-    border-radius: 2px;
+.stereo-controls button {
+    background: rgb(34, 24, 22);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
     color: rgb(182, 185, 149);
     font-family: monospace;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-size: 12px;
+    min-width: auto;
+    min-height: auto;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.shuffle-button:hover,
-.loop-button:hover {
-    color: rgb(182, 185, 149);
+.stereo-controls button:hover {
     background: rgba(70, 75, 34, 0.386);
-    opacity: 0.8;
     transform: scale(1.05);
 }
 
-.shuffle-button.active,
-.loop-button.active {
-    opacity: 1;
+.stereo-controls button.active {
     background: rgb(73, 83, 29);
     color: rgb(182, 185, 149);
+}
+
+.stereometer-section {
+    margin: 15px 0;
+    transition: height 0.3s ease;
+    overflow: hidden;
+}
+
+.stereometer-section.hidden {
+    height: 0;
+}
+
+.stereometer-canvas-container {
+    margin-bottom: 15px;
+}
+
+.stereometer-canvas-container canvas {
+    width: 100%;
+    height: 200px;
+    background: black;
+    border-radius: 4px;
+}
+
+.stereometer-section.hidden {
+    height: 0;
+    overflow: hidden;
 }
 
 @media (max-width: 600px) {
@@ -422,27 +484,4 @@ input[type="range"]::-webkit-slider-thumb {
     .separator {
         display: none;
     }
-}
-
-.upper-container {
-    background: rgb(40, 27, 25);
-    padding: 25px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.controls-volume-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0;
-    margin-top: 30px;
-}
-
-.controls {
-    display: flex;
-    align-items: center;
-    gap: 30px;
 }

@@ -11,10 +11,247 @@ function log(message, data = '') {
 
 log('Renderer started');
 
+// Audio Context initialization
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// Stereometer Class Definition
+class Stereometer {
+    constructor(audioContext, audioElement) {
+        this.audioContext = audioContext;
+        this.audioElement = audioElement;
+        this.isInitialized = false;
+        this.mode = 'logarithmic';
+        this.colorMode = 'static';
+        
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = 800;
+        this.canvas.height = 200;
+        this.ctx = this.canvas.getContext('2d');
+        
+        // Audio nodes
+        this.source = null;
+        this.splitter = null;
+        this.analyserLeft = null;
+        this.analyserRight = null;
+        
+        // Particle system
+        this.particles = [];
+        this.particleCount = 15;
+        this.particleSize = 6;
+        
+        this.animationFrame = null;
+        
+        this.initialize();
+    }
+
+    initialize() {
+        if (this.isInitialized) return;
+
+        this.source = this.audioContext.createMediaElementSource(this.audioElement);
+        this.splitter = this.audioContext.createChannelSplitter(2);
+        this.analyserLeft = this.audioContext.createAnalyser();
+        this.analyserRight = this.audioContext.createAnalyser();
+        
+        [this.analyserLeft, this.analyserRight].forEach(analyser => {
+            analyser.fftSize = 512;
+            analyser.smoothingTimeConstant = 0.85;
+        });
+        
+        this.source.connect(this.splitter);
+        this.splitter.connect(this.analyserLeft, 0);
+        this.splitter.connect(this.analyserRight, 1);
+        this.source.connect(this.audioContext.destination);
+        
+        this.initParticles();
+        this.isInitialized = true;
+    }
+
+    initParticles() {
+        this.particles = [];
+        for (let i = 0; i < this.particleCount; i++) {
+            this.particles.push({
+                x: this.canvas.width / 2,
+                y: this.canvas.height / 2,
+                size: this.particleSize,
+                speed: 0,
+                angle: 0,
+                intensity: 0,
+                targetX: 0,
+                targetY: 0
+            });
+        }
+    }
+
+    updateParticles(audioData) {
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+
+        this.particles.forEach((particle, index) => {
+            const dataIndex = Math.floor((index / this.particleCount) * (audioData.length / 4));
+            const intensity = audioData[dataIndex] / 255;
+            particle.intensity = intensity;
+
+            switch(this.mode) {
+                case 'logarithmic':
+                    particle.targetX = centerX + (index - this.particleCount/2) * 20 * Math.log(1 + intensity);
+                    particle.targetY = centerY - intensity * 150;
+                    break;
+                
+                case 'linear':
+                    const angle = -Math.PI/4;
+                    const distance = intensity * 200;
+                    particle.targetX = centerX + Math.cos(angle) * distance * (index / this.particleCount);
+                    particle.targetY = centerY + Math.sin(angle) * distance;
+                    break;
+                
+                case 'lissajous':
+                    const time = Date.now() / 1000;
+                    const scale = 50 * intensity;
+                    particle.targetX = centerX + Math.sin(time * 2 + index) * scale;
+                    particle.targetY = centerY + Math.cos(time * 3 + index) * scale;
+                    break;
+            }
+
+            particle.x += (particle.targetX - particle.x) * 0.2;
+            particle.y += (particle.targetY - particle.y) * 0.2;
+        });
+    }
+
+    draw() {
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.particles.forEach(particle => {
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            
+            let color;
+            switch(this.colorMode) {
+                case 'static':
+                    color = `rgb(0, ${Math.floor(255 * particle.intensity)}, 0)`;
+                    break;
+                case 'rgb':
+                    const hue = particle.intensity * 120;
+                    color = `hsl(${hue}, 100%, 50%)`;
+                    break;
+                case 'multi-band':
+                    const bandHue = (particle.x / this.canvas.width) * 120;
+                    color = `hsl(${bandHue}, 100%, ${50 + particle.intensity * 50}%)`;
+                    break;
+            }
+            
+            this.ctx.fillStyle = color;
+            this.ctx.fill();
+
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.size * 1.5, 0, Math.PI * 2);
+            this.ctx.fillStyle = `rgba(0, ${Math.floor(255 * particle.intensity * 0.5)}, 0, 0.3)`;
+            this.ctx.fill();
+        });
+    }
+
+    animate() {
+        if (!this.isInitialized) return;
+
+        const audioData = new Uint8Array(this.analyserLeft.frequencyBinCount);
+        this.analyserLeft.getByteFrequencyData(audioData);
+        
+        this.updateParticles(audioData);
+        this.draw();
+        
+        this.animationFrame = requestAnimationFrame(() => this.animate());
+    }
+
+    setMode(mode) {
+        this.mode = mode;
+        this.initParticles();
+    }
+
+    setColorMode(colorMode) {
+        this.colorMode = colorMode;
+    }
+
+    start() {
+        if (!this.isInitialized) this.initialize();
+        this.animate();
+    }
+
+    stop() {
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+
+    getCanvas() {
+        return this.canvas;
+    }
+}
+
 // Audio Player Setup
 const audioPlayer = document.createElement('audio');
 audioPlayer.setAttribute('preload', 'auto');
 document.body.appendChild(audioPlayer);
+
+// Initialize Stereometer
+let stereometer;
+const canvasContainer = document.querySelector('.stereometer-canvas-container');
+
+// Function to initialize Stereometer only when needed
+function initializeStereometer() {
+    if (!stereometer) {
+        stereometer = new Stereometer(audioContext, audioPlayer);
+        canvasContainer.appendChild(stereometer.getCanvas());
+    }
+}
+
+// Stereometer Controls
+const stereoControls = document.querySelector('.stereo-controls');
+const stereoSection = document.querySelector('.stereometer-section');
+const toggleButton = document.querySelector('.toggle-button');
+
+// Domyślnie visualizer jest ukryty i przycisk nieaktywny
+stereoSection.classList.add('hidden');
+toggleButton.classList.remove('active');
+
+stereoControls.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+        const type = e.target.parentNode.className;
+        const value = e.target.dataset.mode || e.target.dataset.color;
+        
+        const buttons = e.target.parentNode.querySelectorAll('button');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        if (type === 'stereo-mode') {
+            stereometer.setMode(value);
+        } else {
+            stereometer.setColorMode(value);
+        }
+    }
+});
+
+// Toggle stereometer visibility
+toggleButton.addEventListener('click', () => {
+    stereoSection.classList.toggle('hidden');
+    toggleButton.classList.toggle('active');
+    
+    if (!stereoSection.classList.contains('hidden')) {
+        // Initialize stereometer when first needed
+        if (!stereometer) {
+            initializeStereometer();
+        }
+        if (!audioPlayer.paused) {
+            stereometer.start();
+        }
+        toggleButton.classList.add('active');
+    } else {
+        if (stereometer) {
+            stereometer.stop();
+        }
+        toggleButton.classList.remove('active');
+    }
+});
 
 // State
 let isPlaying = false;
@@ -79,7 +316,6 @@ function shufflePlaylist() {
         originalPlaylist = [...playlist];
         shuffledIndices = Array.from({length: playlist.length}, (_, i) => i);
         
-        // Fisher-Yates shuffle
         for (let i = shuffledIndices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledIndices[i], shuffledIndices[j]] = [shuffledIndices[j], shuffledIndices[i]];
@@ -111,7 +347,7 @@ clearPlaylistButton.addEventListener('click', () => {
     playlist = [];
     currentTrackIndex = 0;
     
-    trackTitle.textContent = '[NO TRACK SELECTED]';
+    trackTitle.textContent = 'NO TRACK SELECTED';
     timeDisplay.textContent = '0:00 / 0:00';
     progressSlider.value = 0;
     progressSlider.style.setProperty('--value', '0%');
@@ -121,6 +357,11 @@ clearPlaylistButton.addEventListener('click', () => {
         playlistHeaderContent.textContent = 'PLAYLIST EMPTY';
     }
     playlistContent.innerHTML = '';
+    
+    // Stop visualizer 
+    if (!stereoSection.classList.contains('hidden')) {
+        stereometer.stop();
+    }
 });
 
 // Volume controls
@@ -307,7 +548,7 @@ async function selectMusic() {
 function updatePlaylistDisplay() {
     const playlistHeaderContent = playlistHeader.querySelector('.playlist-title');
     if (playlistHeaderContent) {
-        playlistHeaderContent.textContent = `PLAYLIST`;
+        playlistHeaderContent.textContent = playlist.length > 0 ? 'PLAYLIST' : 'PLAYLIST EMPTY';
     }
     
     playlistContent.innerHTML = '';
@@ -347,6 +588,12 @@ async function loadTrack(index) {
         return;
     }
 
+    // LOOP off when skipped
+    if (isLoopEnabled) {
+        isLoopEnabled = false;
+        loopButton.classList.remove('active');
+    }
+
     const track = playlist[index];
     log('Loading track:', track.name);
 
@@ -373,6 +620,10 @@ async function loadTrack(index) {
             await audioPlayer.play();
             playButton.textContent = '⏸';
             log('Playback started');
+            
+            if (!stereoSection.classList.contains('hidden')) {
+                stereometer.start();
+            }
         }
 
         volumeSlider.value = audioPlayer.volume;
@@ -393,12 +644,18 @@ async function togglePlay() {
             playButton.textContent = '⏸';
             isPlaying = true;
             startProgressUpdate();
+            if (!stereoSection.classList.contains('hidden')) {
+                stereometer.start();
+            }
             log('Playback started');
         } else {
             audioPlayer.pause();
             playButton.textContent = '⏵';
             isPlaying = false;
             stopProgressUpdate();
+            if (stereometer) {
+                stereometer.stop();
+            }
             log('Playback paused');
         }
     } catch (error) {
